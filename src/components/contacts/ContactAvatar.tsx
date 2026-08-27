@@ -13,9 +13,24 @@ export default function ContactAvatar({
   contact,
   size = "md",
 }: {
-  contact: Pick<Contact, "first_name" | "last_name" | "email">;
+  contact: Pick<
+    Contact,
+    "first_name" | "last_name" | "email" | "photo_url"
+  >;
   size?: keyof typeof SIZES;
 }) {
+  if (contact.photo_url) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element -- data URL / arbitrary remote avatar; next/image optimization N/A
+      <img
+        src={contact.photo_url}
+        alt=""
+        aria-hidden="true"
+        className={`inline-flex shrink-0 aspect-square rounded-full object-cover ${SIZES[size]}`}
+      />
+    );
+  }
+
   const style = {
     "--avatar-hue": avatarHue(contact.email),
   } as CSSProperties;
