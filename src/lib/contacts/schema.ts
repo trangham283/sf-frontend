@@ -52,6 +52,17 @@ export const contactInputSchema = z.object({
     .transform((value) => value || null)
     .nullable()
     .default(null),
+  photo_url: z
+    .string()
+    .trim()
+    .max(3_000_000, "Photo is too large")
+    .refine(
+      (v) => v === "" || /^(https?:\/\/|data:image\/)/.test(v),
+      "Enter an image URL or upload a photo",
+    )
+    .transform((v) => v || null)
+    .nullable()
+    .default(null),
 }) satisfies z.ZodType<ContactInput, unknown>;
 
 export type ContactFormValues = z.input<typeof contactInputSchema>;
@@ -218,10 +229,13 @@ export const CONTACT_FIELDS: ContactFieldSpec[] = CONTACT_FIELD_GROUPS.flatMap(
 export function formDataToValues(
   formData: FormData,
 ): Record<keyof ContactInput, string> {
-  return Object.fromEntries(
-    CONTACT_FIELDS.map((field) => [
-      field.name,
-      String(formData.get(field.name) ?? ""),
-    ]),
-  ) as Record<keyof ContactInput, string>;
+  return {
+    ...Object.fromEntries(
+      CONTACT_FIELDS.map((field) => [
+        field.name,
+        String(formData.get(field.name) ?? ""),
+      ]),
+    ),
+    photo_url: String(formData.get("photo_url") ?? ""),
+  } as Record<keyof ContactInput, string>;
 }
