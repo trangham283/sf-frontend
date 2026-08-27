@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ChangeEvent } from "react";
+import { useRef, useState, type ChangeEvent } from "react";
 import { User } from "lucide-react";
 import Button, { buttonClasses } from "@/components/ui/Button";
 
@@ -9,11 +9,20 @@ const MAX_DIMENSION = 512;
 
 export default function ContactPhotoField({
   defaultPhotoUrl,
+  onProcessingChange,
 }: {
   defaultPhotoUrl?: string | null;
+  onProcessingChange?: (processing: boolean) => void;
 }) {
   const [photoUrl, setPhotoUrl] = useState(defaultPhotoUrl ?? "");
   const [error, setError] = useState("");
+  const [processing, setProcessing] = useState(false);
+  const loadIdRef = useRef(0);
+
+  function updateProcessing(next: boolean) {
+    setProcessing(next);
+    onProcessingChange?.(next);
+  }
 
   function handleChange(event: ChangeEvent<HTMLInputElement>) {
     const input = event.currentTarget;
@@ -35,10 +44,18 @@ export default function ContactPhotoField({
       return;
     }
 
+    const myId = ++loadIdRef.current;
+    updateProcessing(true);
+
     const objectUrl = URL.createObjectURL(file);
     const image = new Image();
 
     image.onload = () => {
+      if (myId !== loadIdRef.current) {
+        URL.revokeObjectURL(objectUrl);
+        return;
+      }
+
       try {
         const scale = Math.min(
           1,
@@ -62,20 +79,26 @@ export default function ContactPhotoField({
       } finally {
         URL.revokeObjectURL(objectUrl);
         input.value = "";
+        if (myId === loadIdRef.current) {
+          updateProcessing(false);
+        }
       }
     };
 
     image.onerror = () => {
       URL.revokeObjectURL(objectUrl);
+      if (myId !== loadIdRef.current) return;
+
       input.value = "";
       setError("Could not load that photo");
+      updateProcessing(false);
     };
 
     image.src = objectUrl;
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" aria-busy={processing}>
       <div className="border-b border-hairline pb-2">
         <h2 className="font-display text-sm font-semibold text-foreground">
           Photo
@@ -121,8 +144,10 @@ export default function ContactPhotoField({
               <Button
                 variant="ghost"
                 onClick={() => {
+                  loadIdRef.current++;
                   setPhotoUrl("");
                   setError("");
+                  updateProcessing(false);
                 }}
               >
                 Remove
