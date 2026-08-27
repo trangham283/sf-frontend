@@ -26,7 +26,7 @@ export default function ContactAvatar({
         src={contact.photo_url}
         alt=""
         aria-hidden="true"
-        className={`inline-flex shrink-0 rounded-full object-cover ${SIZES[size]}`}
+        className={`inline-flex shrink-0 aspect-square rounded-full object-cover ${SIZES[size]}`}
       />
     );
   }

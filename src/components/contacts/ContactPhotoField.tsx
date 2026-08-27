@@ -117,7 +117,7 @@ export default function ContactPhotoField({
             src={photoUrl}
             alt=""
             aria-hidden="true"
-            className="h-16 w-16 rounded-full object-cover"
+            className="h-16 w-16 aspect-square rounded-full object-cover"
           />
         ) : (
           <span className="inline-flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-secondary text-muted-foreground">
